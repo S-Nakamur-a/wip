@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {MouseEvent, TouchEvent, useEffect, useRef} from 'react'
 import { Answers, Suuji } from '../libs/sudoku'
 import styles from './modal.module.css'
 
@@ -62,12 +62,18 @@ export const ModalComponent = (props: ModalProps) => {
             return styles.select_option;
         }
     }
+
+    const ref = usePreventDefault<HTMLDivElement>('touchstart');
+
     return (
         <div className={styles.select_modal}>
             <div className={styles.close_button} onClick={props.closeHandler}>×</div>
             {Array.from({ length: 9 }, (_, i) => (i + 1) as Suuji).map((n) => (
                 <div className={classNameByState(n)}
                     key={n}
+                    ref={ref}
+                    onTouchStart={() => {handleLongPress(n)}}
+                    // onTouchEnd={() => handleClick(n)}
                     onMouseDown={() => handleLongPress(n)}
                     onMouseUp={() => handleClick(n)}
                     onMouseLeave={() => pressTimer.current && handleClear()}
@@ -78,3 +84,28 @@ export const ModalComponent = (props: ModalProps) => {
         </div>
     )
 };
+
+const usePreventDefault = <T extends HTMLElement>(
+    eventName: string,
+    enable = true
+  ) => {
+    const ref = useRef<T>(null);
+    useEffect(() => {
+      const current = ref.current;
+      if (!current) {
+        return;
+      }
+      const handler = (event: Event) => {
+        if (enable) {
+          event.preventDefault();
+        }
+      };
+      current.addEventListener(eventName, handler);
+      return () => {
+        current.removeEventListener(eventName, handler);
+      };
+    }, [enable, eventName]);
+  
+    return ref;
+  };
+  

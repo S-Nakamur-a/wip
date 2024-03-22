@@ -70,6 +70,13 @@
     /* 落ち着いた文字色 */
 }
 
+button.selected {
+    font-weight: 900;
+    text-shadow: 0 0 5px #fff;
+    box-shadow: thistle 0 0 5px;
+    text-decoration: underline;
+    text-decoration-color: #fff;
+}
 
 .congraturations {
     font-size: 2rem;

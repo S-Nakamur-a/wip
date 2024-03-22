@@ -10,30 +10,35 @@ export const useSudokuBoard = () => {
     const answerBoard = useRef<CompletedBoardType>();
     const initialBoard = useRef<IncompletedBoardType>();
     const [userAnswerBoard, setUserAnswerBoard] = useState<UserAnswerBoardType>(newUserAnswerBoard());
+    const difficulty = useRef<Difficulty>("Easy");
+    const [clear, setClear] = useState(false);
 
-    const newGame = (difficulty: Difficulty) => {
+    const newGame = (d: Difficulty) => {
+        difficulty.current = d;
         const difficultyLevel: DifficultyLevel = {
             "Easy": 30,
             "Normal": 40,
             "Hard": 100,
         }
     
-        const [incompletedBoard, completedBoard] = createRandomSudokuProblem(difficultyLevel[difficulty]);
+        const [incompletedBoard, completedBoard] = createRandomSudokuProblem(difficultyLevel[d]);
         initialBoard.current = copyBoard(incompletedBoard);
         setBoard(incompletedBoard);
         answerBoard.current = completedBoard;
         setUserAnswerBoard(newUserAnswerBoard());
+        setClear(false);
     }
     
     useEffect(() => {
-        newGame("Easy");
+        newGame(difficulty.current);
     }, [])
 
-    const [clear, setClear] = useState(false);
     const checkClear = () => {
         if (board && isEqualBoard(board, answerBoard.current!)) {
             setClear(true);
+        } else {
+            setClear(false);
         }
     }
-    return { board, setBoard, initialBoard, clear, checkClear, newGame, userAnswerBoard, setUserAnswerBoard};
+    return { board, setBoard, initialBoard, clear, checkClear, newGame, userAnswerBoard, setUserAnswerBoard, difficulty };
 }
