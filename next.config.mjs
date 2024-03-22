@@ -1,4 +1,12 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const isProd = process.env.NODE_ENV === 'production';
+const basePath = isProd ? '/wip' : '';
+const assetPrefix = isProd ? '/wip/' : '';
 
-export default nextConfig;
+const nextConfig = {
+    output: 'export',
+    basePath,
+    assetPrefix,
+}
+
+export default nextConfig

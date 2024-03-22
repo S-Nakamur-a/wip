@@ -1,0 +1,79 @@
+.sudoku_select_contianer {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 20px auto;
+    width: 540px;
+}
+
+@media (max-width: 500px) {
+    .sudoku_select_contianer {
+        width: 270px
+    }
+}
+
+.sudoku_select {
+    font-family: 'Helvetica', 'Arial', sans-serif;
+    /* 数独に合うクリーンなフォント */
+    font-size: 16px;
+    /* 読みやすいフォントサイズ */
+    color: #333;
+    /* 落ち着いた文字色 */
+    background-color: #f0f0f0;
+    /* 明るい背景色でセルを際立たせる */
+    border: 1px solid #ccc;
+    /* シンプルなボーダー */
+    border-radius: 4px;
+    /* やや丸みを帯びた角 */
+    padding: 8px 12px;
+    /* 内部の余白 */
+    margin: 10px;
+    /* 外側の余白 */
+    cursor: pointer;
+    /* 画面の中央に表示 */
+    display: block;
+    margin: 20px auto;
+    width: 33%;
+    text-align: center;
+    /* カーソルをポインタに */
+    appearance: none;
+    /* ブラウザのデフォルトスタイリングを解除 */
+    -moz-appearance: none;
+    -webkit-appearance: none;
+}
+
+.sudoku_easy {
+    background-color: #99ff99;
+    /* 明るい背景色でセルを際立たせる */
+    border: 1px solid #66cc66;
+    /* シンプルなボーダー */
+    color: #006600;
+    /* 落ち着いた文字色 */
+}
+
+.sudoku_normal {
+    background-color: #99ccff;
+    /* 明るい背景色でセルを際立たせる */
+    border: 1px solid #6699cc;
+    /* シンプルなボーダー */
+    color: #003366;
+    /* 落ち着いた文字色 */
+}
+
+.sudoku_hard {
+    background-color: #ff9999;
+    /* 明るい背景色でセルを際立たせる */
+    border: 1px solid #cc6666;
+    /* シンプルなボーダー */
+    color: #660000;
+    /* 落ち着いた文字色 */
+}
+
+
+.congraturations {
+    font-size: 2rem;
+    color: rgb(255, 160, 45);
+    margin-bottom: 2rem;
+    text-align: center;
+}

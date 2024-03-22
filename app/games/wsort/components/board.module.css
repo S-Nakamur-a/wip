@@ -1,0 +1,140 @@
+.bottle {
+    display: flex;
+    flex-direction: column-reverse;
+    width: 50px;
+    /* ボトルの幅を調整 */
+    height: 120px;
+    background-color: #fff;
+    border: 2px solid #ccc;
+    /* ボトルの枠線色を調整 */
+    border-radius: 5px 5px 30px 30px;
+    /* 上部を丸く、下部を少し平らに */
+    margin: 10px;
+    cursor: pointer;
+    box-sizing: border-box;
+    align-items: stretch;
+    transition: transform 0.2s;
+    /* ホバー時のアニメーション用 */
+}
+
+.bottle:hover {
+    transform: scale(1.1);
+    /* ホバー時に少し大きくする */
+}
+
+.bottle.selected {
+    border-color: rgb(27, 198, 255);
+    border-width: 4px;
+    /* 選択状態での枠線色を変更 */
+    box-shadow: 0 0 10px rgb(56, 44, 44);
+    /* 選択状態での影を追加 */
+}
+
+.water {
+    flex: 1;
+    margin: 2px;
+    /* ボトルの内側にマージンを設定 */
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.water.bottom {
+    border-radius: 0 0 20px 20px;
+}
+
+.emptySpace {
+    flex: 1;
+    margin: 2px;
+    /* ボトルの内側にマージンを設定 */
+    background-color: transparent;
+    border-radius: 20px 20px 0 0;
+    /* 上部を丸くする */
+    box-sizing: border-box;
+}
+
+.gameBoard {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.button_back {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    background-color: #99ccff;
+    border: 1px solid #6699cc;
+    color: #003366;
+    cursor: pointer;
+}
+
+.button_reset {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    background-color: #ffff99;
+    border: 1px solid #cccc66;
+    color: #666600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.button_new {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    background-color: #ff9999;
+    /* 明るい背景色でセルを際立たせる */
+    border: 1px solid #cc6666;
+    /* シンプルなボーダー */
+    color: #660000;
+    /* 落ち着いた文字色 */
+    cursor: pointer;
+}
+
+.olive_button {
+    background-color: #99ff99;
+    border: 1px solid #66cc66;
+    color: #006600;
+
+    font-size: 16px;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin: 15px;
+}
+
+@keyframes celebrationAnimation {
+
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 8px #fff;
+    }
+
+    50% {
+        transform: scale(1.1);
+        box-shadow:
+            0 0 12px #ff0,
+            0 0 24px #ff0;
+    }
+}
+
+.celebrate {
+    animation: celebrationAnimation 0.5s;
+}
+
+.colorNumberSlider {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 10px;
+}
