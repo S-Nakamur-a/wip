@@ -55,36 +55,58 @@ export const ModalComponent = (props: ModalProps) => {
         setIsPressing(0);
     }
     
-    const classNameByState = (n: Suuji): string => {
-        if (isPressing === n) {
-            return `${styles.press_animation} ${styles.select_option}`;
-        } else {
-            return styles.select_option;
-        }
-    }
-
-    const ref = usePreventDefault<HTMLDivElement>('touchstart');
 
     return (
         <div className={styles.select_modal}>
             <div className={styles.close_button} onClick={props.closeHandler}>×</div>
             {Array.from({ length: 9 }, (_, i) => (i + 1) as Suuji).map((n) => (
-                <div className={classNameByState(n)}
+                <OptionComponent 
                     key={n}
-                    ref={ref}
-                    onTouchStart={() => {handleLongPress(n)}}
-                    // onTouchEnd={() => handleClick(n)}
-                    onMouseDown={() => handleLongPress(n)}
-                    onMouseUp={() => handleClick(n)}
-                    onMouseLeave={() => pressTimer.current && handleClear()}
-                >
-                    <span className={props.answers[n] ? styles.selected_suuji : ""}>{n}</span>
-                </div>
+                    n={n} 
+                    handleClick={handleClick} 
+                    handleLongPress={handleLongPress} 
+                    handleClear={handleClear}
+                    answers={props.answers}
+                    isPressing={isPressing}
+                />
             ))}
         </div>
     )
 };
 
+const OptionComponent = (
+    props: {
+        n: Suuji,
+        handleClick: (n: Suuji) => void, 
+        handleLongPress: (n: Suuji) => void
+        handleClear: () => void,
+        answers: Answers,
+        isPressing: number
+    }) => {
+        const classNameByState = (n: Suuji): string => {
+            if (props.isPressing === n) {
+                return `${styles.press_animation} ${styles.select_option}`;
+            } else {
+                return styles.select_option;
+            }
+        }
+        const ref = usePreventDefault<HTMLDivElement>('touchstart');
+    
+    return (
+        <div className={classNameByState(props.n)}
+            key={props.n}
+            ref={ref}
+            onTouchStart={(e) => {props.handleLongPress(props.n)}}
+            onTouchEnd={() => props.handleClick(props.n)}
+            onTouchCancel={() => props.handleClear()}
+            onMouseDown={() => props.handleLongPress(props.n)}
+            onMouseUp={() => props.handleClick(props.n)}
+            onMouseLeave={() => props.handleClear()}
+        >
+            <span className={props.answers[props.n] ? styles.selected_suuji : ""}>{props.n}</span>
+        </div>
+    )
+}
 const usePreventDefault = <T extends HTMLElement>(
     eventName: string,
     enable = true
