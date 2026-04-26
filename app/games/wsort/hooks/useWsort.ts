@@ -7,6 +7,7 @@ function useGameState(initialParam: number) {
   const [gameState, setGameState] = useState<GameStateClass>(GameStateClass.empty())
   const [gameHistory, setGameHistory] = useState<GameStateClass[]>([])
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1)
+  const [isGenerating, setIsGenerating] = useState(false)
 
 
   // 履歴から1手戻る機能
@@ -47,18 +48,24 @@ function useGameState(initialParam: number) {
     setCurrentHistoryIndex(0)
   }
 
-  // 新しいゲームを開始する関数
+  // 新しいゲームを開始する関数。重い乱数生成は setTimeout で yield して
+  // 「生成中」表示が描画されてから実行されるようにする。
   const startNewGame = (newColorNumber: number) => {
-    const initialState = GameStateClass.random(newColorNumber)
-    setGameHistory([initialState])
-    setGameState(initialState)
-    setCurrentHistoryIndex(0)
+    setIsGenerating(true)
+    setTimeout(() => {
+      const initialState = GameStateClass.random(newColorNumber)
+      setGameHistory([initialState])
+      setGameState(initialState)
+      setCurrentHistoryIndex(0)
+      setIsGenerating(false)
+    }, 0)
   }
 
-    // ゲームの初期状態を設定し、履歴に追加
+    // 初期マウント時のみ生成。スライダーのドラッグ中に再生成されないよう deps は空配列にする。
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         startNewGame(initialParam)
-    }, [initialParam])
+    }, [])
 
     // 指定された状態にゲームをセットする関数（履歴はリセットする）
     const setGameStateAndResetHistory = (newGameState: GameStateClass) => {
@@ -70,6 +77,7 @@ function useGameState(initialParam: number) {
 
   return {
     gameState,
+    isGenerating,
     updateGameState,
     undoGameState,
     resetGameState,
