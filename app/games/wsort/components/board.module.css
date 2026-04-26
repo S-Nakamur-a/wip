@@ -132,6 +132,23 @@
     animation: celebrationAnimation 0.5s;
 }
 
+.generating {
+    font-size: 18px;
+    color: #888;
+    text-align: center;
+    margin: 10px;
+    font-style: italic;
+}
+
+.congratulations {
+    font-size: 32px;
+    font-weight: bold;
+    color: #d4621a;
+    text-align: center;
+    margin: 20px 0;
+    text-shadow: 0 0 8px #ffd97a;
+}
+
 .colorNumberSlider {
     display: flex;
     justify-content: center;
