@@ -162,65 +162,57 @@ const findBlank = (board: IncompletedBoardType): [number, number] | null => {
     return null;
 }
 
-const findRandomSuujiCell = (board: IncompletedBoardType): [number, number] | null => {
-    const blankCells: [number, number][] = [];
-    for (let y = 0; y < 9; y++) {
-        for (let x = 0; x < 9; x++) {
-            if (board[y][x] !== 0) {
-                blankCells.push([y, x]);
-            }
-        }
-    }
-    if (blankCells.length === 0) {
-        return null;
-    }
-    const randomIndex = Math.floor(Math.random() * blankCells.length);
-    return blankCells[randomIndex];
-}
-
 export const createRandomSudokuProblem = (n: number): [IncompletedBoardType, CompletedBoardType] => {
     if (n < 10 || n > 100) {
         throw new Error("n should be between 10 and 100");
     }
     const completedBoard = createRandomCompletedBoard();
-    let board = copyBoard(completedBoard) as IncompletedBoardType;
+    const board = copyBoard(completedBoard) as IncompletedBoardType;
 
-    // ランダムにセルを削除し、もう一度solveする。結果がcompletedBoardと一致しない場合はもう一度やり直す。
-    let count = 0;
-    while (count < n) {
-        const pos = findRandomSuujiCell(board);
-        if (pos) {
-            const [y, x] = pos;
-            const tmp = copyBoard(board);
-            tmp[y][x] = 0;
-            const answers = ultraFastSearchAllAnswers(tmp);
-            if (answers.length === 1 && isEqualBoard(answers[0], completedBoard)) {
-                board[y][x] = 0;
-            }
+    const positions: [number, number][] = [];
+    for (let y = 0; y < 9; y++) {
+        for (let x = 0; x < 9; x++) {
+            positions.push([y, x]);
         }
-        count++;
+    }
+    for (let i = positions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [positions[i], positions[j]] = [positions[j], positions[i]];
+    }
+
+    let removed = 0;
+    for (const [y, x] of positions) {
+        if (removed >= n) break;
+        if (board[y][x] === 0) continue;
+        const saved = board[y][x];
+        board[y][x] = 0;
+        // completedBoardは常に解の一つ。よって解が一意なら必然的にcompletedBoardと一致する。
+        if (countSolutionsUpTo2(board) === 1) {
+            removed++;
+        } else {
+            board[y][x] = saved;
+        }
     }
 
     return [board, completedBoard];
 }
 
-const ultraFastSearchAllAnswers = (board: IncompletedBoardType): CompletedBoardType[] => {
-    const find = findBlank(board);
-    if (find === null) {
-        return [copyBoard(board) as CompletedBoardType];
-    }
-
-    const [y, x] = find;
-    const answers: CompletedBoardType[] = [];
-
-    for (let num = 1; num <= 9; num++) {
-        const n = num as Suuji;
-        if (isSafe(board, y, x, n)) {
-            board[y][x] = n;
-            answers.push(...ultraFastSearchAllAnswers(board));
-            board[y][x] = 0;
+const countSolutionsUpTo2 = (board: IncompletedBoardType): number => {
+    const search = (): number => {
+        const find = findBlank(board);
+        if (find === null) return 1;
+        const [y, x] = find;
+        let total = 0;
+        for (let num = 1; num <= 9; num++) {
+            const n = num as Suuji;
+            if (isSafe(board, y, x, n)) {
+                board[y][x] = n;
+                total += search();
+                board[y][x] = 0;
+                if (total >= 2) return 2;
+            }
         }
+        return total;
     }
-
-    return answers;
+    return search();
 }
