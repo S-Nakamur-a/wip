@@ -1,18 +1,128 @@
-.main {
+.dashboard {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0;
-  min-height: 100vh;
+  gap: 32px;
 }
 
+.hero {
+  text-align: center;
+  padding: 24px 0 8px;
+}
+
+.heroTitle {
+  font-size: 44px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  background: linear-gradient(135deg, #f59e0b, #ea580c);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin: 0 0 8px;
+}
+
+.heroLead {
+  color: #64748b;
+  font-size: 15px;
+  margin: 0;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.card:hover {
+  border-color: #f59e0b;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.12);
+}
+
+.card:active {
+  transform: translateY(0);
+}
+
+.cardIcon {
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  background-color: #fff7ed;
+  border-radius: 12px;
+}
+
+.cardBody {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.cardTitleRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cardTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.cardSubtitle {
+  font-size: 12px;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.cardDescription {
+  font-size: 13px;
+  color: #64748b;
+  margin: 4px 0 0;
+  line-height: 1.5;
+}
+
+.cardArrow {
+  flex: 0 0 auto;
+  color: #cbd5e1;
+  font-size: 20px;
+  transition: color 0.15s, transform 0.15s;
+}
+
+.card:hover .cardArrow {
+  color: #f59e0b;
+  transform: translateX(3px);
+}
+
+/* layout.tsx 内の共通ヘッダ用クラス。既存の .header はそのまま使われるので維持 */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding: 0;
-    border-bottom: 2px solid #5d5d5d;
-    font-size: 20px;
+  padding: 12px 16px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 20px;
 }

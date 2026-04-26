@@ -5,14 +5,34 @@ import { SudokuBoard } from './components/board';
 import { Difficulty, useSudokuBoard } from './hooks/useSudoku';
 
 export default function Page() {
-    const {board, setBoard, initialBoard, clear, checkClear, newGame, userAnswerBoard, setUserAnswerBoard, difficulty} = useSudokuBoard();
+    const {board, setBoard, initialBoard, clear, checkClear, newGame, resetBoard, userAnswerBoard, setUserAnswerBoard, difficulty} = useSudokuBoard();
+
+    const handleReset = () => {
+        if (!clear && !window.confirm('現在の進行状況を初期状態に戻しますか？')) return;
+        resetBoard();
+    }
+    const handleNewGame = (d: Difficulty) => {
+        if (!clear && !window.confirm('現在の盤面を破棄して新しいゲームを始めますか？')) return;
+        newGame(d);
+    }
 
     return (
         <div className="container">
             <h1>数独</h1>
             {board && initialBoard.current && <SudokuBoard initialBoard={initialBoard.current} board={board} setBoard={setBoard} checkClear={checkClear} userAnswerBoard={userAnswerBoard} setUserAnswerBoard={setUserAnswerBoard} />}
             {clear && <div className={styles.congraturations}>Congratulations!</div>}
-            <NewGameComponent newGame={newGame} difficulty={difficulty.current}/>
+            <ResetComponent onReset={handleReset} />
+            <NewGameComponent newGame={handleNewGame} difficulty={difficulty.current}/>
+        </div>
+    )
+}
+
+const ResetComponent = ({onReset}: {onReset: () => void}) => {
+    return (
+        <div className={styles.reset_container}>
+            <button className={styles.reset_button} onClick={onReset} type="button">
+                リセット
+            </button>
         </div>
     )
 }
