@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, MouseEvent, useRef } from "react";
+import { useState } from "react";
 import { Answers, Block, IncompletedBoardType, Suuji, SuujiWithBlank, UserAnswerBoardType, copyBoard } from "../libs/sudoku";
 import styles from './board.module.css';
-import { ModalComponent } from "./modal";
 
 type Props = {
     initialBoard: IncompletedBoardType,
@@ -14,138 +13,170 @@ type Props = {
     setUserAnswerBoard: (board: UserAnswerBoardType) => void,
 }
 
-export const SudokuBoard = ({ initialBoard, board, setBoard, checkClear, userAnswerBoard, setUserAnswerBoard}: Props) => {
-    const setSuuji = (x: number, y: number, num: SuujiWithBlank) => {
-            board[y][x] = num;
-            setBoard(board);
-            if (num !== 0) checkClear();
+type CellPos = { y: number; x: number }
+
+export const SudokuBoard = ({ initialBoard, board, setBoard, checkClear, userAnswerBoard, setUserAnswerBoard }: Props) => {
+    const [selected, setSelected] = useState<CellPos | null>(null)
+    const [noteMode, setNoteMode] = useState<boolean>(false)
+
+    const isProblemCell = (y: number, x: number) => initialBoard[y][x] !== 0
+
+    const handleCellClick = (y: number, x: number) => {
+        setSelected({ y, x })
     }
-    const [isModalOpen, setIsModalOpen] = useState(false)
-    
+
+    const handleNumberTap = (n: Suuji) => {
+        if (!selected) return
+        const { y, x } = selected
+        if (isProblemCell(y, x)) return
+
+        const newUserAnswerBoard = copyBoard(userAnswerBoard)
+        if (noteMode) {
+            const cur = userAnswerBoard[y][x]
+            newUserAnswerBoard[y][x] = { ...cur, [n]: !cur[n] }
+        } else {
+            newUserAnswerBoard[y][x] = blankAnswers()
+            newUserAnswerBoard[y][x][n] = true
+        }
+        setUserAnswerBoard(newUserAnswerBoard)
+
+        const inputAnswers = getInputAnswers(newUserAnswerBoard[y][x])
+        const newValue: SuujiWithBlank = inputAnswers.length === 1 ? inputAnswers[0] : 0
+        const newBoard = copyBoard(board)
+        newBoard[y][x] = newValue
+        setBoard(newBoard)
+        if (newValue !== 0) checkClear()
+    }
+
+    const handleErase = () => {
+        if (!selected) return
+        const { y, x } = selected
+        if (isProblemCell(y, x)) return
+
+        const newUserAnswerBoard = copyBoard(userAnswerBoard)
+        newUserAnswerBoard[y][x] = blankAnswers()
+        setUserAnswerBoard(newUserAnswerBoard)
+
+        const newBoard = copyBoard(board)
+        newBoard[y][x] = 0
+        setBoard(newBoard)
+    }
+
+    const isRelated = (y: number, x: number): boolean => {
+        if (!selected) return false
+        if (selected.y === y && selected.x === x) return false
+        if (selected.y === y || selected.x === x) return true
+        const by = Math.floor(selected.y / 3) * 3
+        const bx = Math.floor(selected.x / 3) * 3
+        return y >= by && y < by + 3 && x >= bx && x < bx + 3
+    }
+
     return (
         <>
             <table className={styles.sudoku}>
                 <tbody>
-                    {board && board.map((row, y) => (
-                    <tr key={y} className={styles.sudoku_row}>
-                        {row.map((value, x) => (
-                        <td className={styles.sudoku_cell} key={y*9+x}>
-                            <Cell x={x} y={y} n={value} isProblem={initialBoard[y][x] === 0} setSuujiHandler={setSuuji} isGlobalModalOpen={isModalOpen} setIsGlobalModalOpen={setIsModalOpen} userAnswerBoard={userAnswerBoard} setUserAnswerBoard={setUserAnswerBoard}/>
-                        </td>
-                        ))}
-                    </tr>
+                    {board.map((row, y) => (
+                        <tr key={y} className={styles.sudoku_row}>
+                            {row.map((value, x) => {
+                                const selectedHere = !!selected && selected.y === y && selected.x === x
+                                const cellClass = [
+                                    styles.sudoku_cell,
+                                    isProblemCell(y, x) ? styles.problem_cell : styles.user_cell,
+                                    selectedHere ? styles.selected : '',
+                                    !selectedHere && isRelated(y, x) ? styles.related : '',
+                                ].filter(Boolean).join(' ')
+                                return (
+                                    <td key={y * 9 + x} className={cellClass} onClick={() => handleCellClick(y, x)}>
+                                        {isProblemCell(y, x)
+                                            ? <div className={styles.cell_value}>{value}</div>
+                                            : <UserCell value={value} answers={userAnswerBoard[y][x]} />}
+                                    </td>
+                                )
+                            })}
+                        </tr>
                     ))}
                 </tbody>
             </table>
+            <NumberPad
+                noteMode={noteMode}
+                onToggleNote={() => setNoteMode((m) => !m)}
+                onNumber={handleNumberTap}
+                onErase={handleErase}
+                disabled={!selected || isProblemCell(selected.y, selected.x)}
+            />
         </>
     )
 }
 
+const blankAnswers = (): Answers => ({
+    1: false, 2: false, 3: false, 4: false, 5: false,
+    6: false, 7: false, 8: false, 9: false,
+})
 
+const getInputAnswers = (ans: Answers): Suuji[] =>
+    Object.entries(ans).filter(([_, v]) => v).map(([k]) => parseInt(k) as Suuji)
 
-type CellProps = {
-    x: number,
-    y: number,
-    n: SuujiWithBlank,
-    isProblem: boolean,
-    setSuujiHandler: (x: number, y: number, n: SuujiWithBlank) => void,
-    isGlobalModalOpen: boolean,
-    setIsGlobalModalOpen: (isOpen: boolean) => void,
-    userAnswerBoard: UserAnswerBoardType,
-    setUserAnswerBoard: (board: UserAnswerBoardType) => void,
-}
-
-export const Cell = (props: CellProps): JSX.Element => {
-    // CellはModalに対して関数を渡しにいく必要がある
+const UserCell = ({ value, answers }: { value: SuujiWithBlank; answers: Answers }) => {
+    if (value !== 0) {
+        return <div className={styles.cell_value}>{value}</div>
+    }
+    const inputAnswers = getInputAnswers(answers)
+    if (inputAnswers.length === 0) {
+        return <div />
+    }
+    const grid: Block<Suuji> = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
     return (
-        <div className={styles.cell}>
-            {props.isProblem ? ProblemCell({...props}) : FixedCell({ ...props })}
+        <div className={styles.candidate_grid}>
+            {grid.flat().map((n) => (
+                <div key={n} className={styles.candidate_cell}>
+                    {answers[n] ? n : ''}
+                </div>
+            ))}
         </div>
     )
 }
 
-
-const ProblemCell = (props: Omit<CellProps, 'n'>) => {
-    const [isModalOpen, setIsModalOpen] = useState(false)
-
-    const openModalHandler = (event: MouseEvent<HTMLDivElement>) => {
-        if (props.isGlobalModalOpen) return
-        setIsModalOpen(true)
-        props.setIsGlobalModalOpen(true)
-    }
-    const closeModalHandler = () => {
-        setIsModalOpen(false)
-        props.setIsGlobalModalOpen(false)
-    }
-
-    const assumeHandler = (n: Suuji) => {
-        const updatedUserAnswerBoard = copyBoard(props.userAnswerBoard);
-        updatedUserAnswerBoard[props.y][props.x][n] = !updatedUserAnswerBoard[props.y][props.x][n];
-        props.setUserAnswerBoard(updatedUserAnswerBoard);
-
-        // answers の中で一つだけtrueの場合、その数字を回答にセットする
-        // それ以外の場合は0をセットする
-        const inputAnswers = getInputAnswers(updatedUserAnswerBoard[props.y][props.x])
-        if (inputAnswers.length === 1) {
-            props.setSuujiHandler(props.x, props.y, inputAnswers[0])
-        } else {
-            props.setSuujiHandler(props.x, props.y, 0)
-        }
-    }
-
-    const answerHandler = (n: Suuji) => {
-        // nだけtrueにして、それ以外をfalseにする
-        const updatedUserAnswerBoard = copyBoard(props.userAnswerBoard);
-        updatedUserAnswerBoard[props.y][props.x] = {
-            1: false,
-            2: false,
-            3: false,
-            4: false,
-            5: false,
-            6: false,
-            7: false,
-            8: false,
-            9: false,
-            [n]: true,
-        }
-        props.setUserAnswerBoard(updatedUserAnswerBoard);
-        props.setSuujiHandler(props.x, props.y, n)
-    }
-
-
-    return (
-        <>
-            {isModalOpen && <ModalComponent answers={props.userAnswerBoard[props.y][props.x]} closeHandler={closeModalHandler} assumeHandler={assumeHandler} answerHandler={answerHandler}/>}
-            <div onClick={openModalHandler} className={styles.blank_cell}>
-                <InnerCell answers={props.userAnswerBoard[props.y][props.x]}/>
-            </div>
-        </>
-    )
+type NumberPadProps = {
+    noteMode: boolean
+    onToggleNote: () => void
+    onNumber: (n: Suuji) => void
+    onErase: () => void
+    disabled: boolean
 }
 
-const getInputAnswers = (ans: Answers): Suuji[] => Object.entries(ans).filter(([_, value]) => value).map(([key, _]) => parseInt(key) as Suuji);
-
-const InnerCell = (props: {answers: Answers}) => {
-    const inputAnswers = getInputAnswers(props.answers)
-    if (inputAnswers.length === 1) {
-        return <div>{inputAnswers[0]}</div>
-    } else if (inputAnswers.length > 1) {
-        const cells: Block<Suuji> = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
-        return (
-            <div className={styles.candidate_table}>
-                {cells.map((row, i) => row.map((n, j) => <div  className={styles.candidate} key={j}>{props.answers[n] ? n : " "}</div>))}
-            </div>
-        )
-    } else {
-        return <div></div>
-    }
-}
-
-type FixedCellProps = Pick<CellProps, 'n'>
-const FixedCell = ({ n }: FixedCellProps) => {
+const NumberPad = ({ noteMode, onToggleNote, onNumber, onErase, disabled }: NumberPadProps) => {
     return (
-        <div>
-            {n}
+        <div className={styles.numpad}>
+            <div className={styles.numpad_actions}>
+                <button
+                    className={`${styles.numpad_action} ${noteMode ? styles.numpad_action_active : ''}`}
+                    onClick={onToggleNote}
+                    type="button"
+                >
+                    ✏️ 下書き
+                </button>
+                <button
+                    className={styles.numpad_action}
+                    onClick={onErase}
+                    disabled={disabled}
+                    type="button"
+                >
+                    ❌ 消す
+                </button>
+            </div>
+            <div className={styles.numpad_row}>
+                {([1, 2, 3, 4, 5, 6, 7, 8, 9] as Suuji[]).map((n) => (
+                    <button
+                        key={n}
+                        className={styles.numpad_button}
+                        onClick={() => onNumber(n)}
+                        disabled={disabled}
+                        type="button"
+                    >
+                        {n}
+                    </button>
+                ))}
+            </div>
         </div>
     )
 }

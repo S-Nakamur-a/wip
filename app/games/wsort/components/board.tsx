@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import useGameState from '../hooks/useWsort'
 import { GameState, Water, pour } from '../interfaces/wsort'
 import { Move, isSolved, solve } from '../models/GameStateClass'
@@ -19,6 +19,14 @@ export const GameBoard = () => {
   } = useGameState(colorNumber)
   const [selectedBottle, setSelectedBottle] = useState<number | null>(null)
   const [solutionMoves, setSolutionMoves] = useState<Move[] | null>(null)
+
+  // 復元された gameState の色数にスライダー表示を追従させる
+  useEffect(() => {
+    if (gameState.nColors > 0 && gameState.nColors !== colorNumber) {
+      setColorNumber(gameState.nColors)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameState.nColors])
 
   const handleBottleClick = (index: number) => {
     if (selectedBottle === null) {
@@ -92,19 +100,22 @@ export const GameBoard = () => {
     setSolutionMoves(solutionMoves.slice(1))
   }
 
+  const cleared = gameState.bottles.length > 0 && isSolved(gameState.bottles)
+
   const handleUndo = () => {
     undoGameState()
     setSolutionMoves(null)
   }
   const handleReset = () => {
+    if (!cleared && !window.confirm('現在の進行状況を初期状態に戻しますか？')) return
     resetGameState()
     setSolutionMoves(null)
   }
   const handleNewGame = () => {
+    if (!cleared && !window.confirm('現在の盤面を破棄して新しいゲームを始めますか？')) return
     startNewGame(colorNumber)
     setSolutionMoves(null)
   }
-  const cleared = gameState.bottles.length > 0 && isSolved(gameState.bottles)
 
   return (
     <div className="container">
@@ -124,31 +135,50 @@ export const GameBoard = () => {
         ))}
       </div>
       {cleared && <div className={styles.congratulations}>Congratulations!</div>}
-      <button className={styles.button_back} onClick={handleUndo}>
-        1手戻る
-      </button>
-      <button className={styles.button_reset} onClick={handleReset}>
-        リセットする
-      </button>
-      <button className={styles.button_new} onClick={handleNewGame}>
-        新しいゲームを始める
-      </button>
-      <button className={styles.olive_button} onClick={handleViewSolution}>
-        回答を見る
-      </button>
-      {solutionMoves && solutionMoves.length > 0 && (
-        <button className={styles.olive_button} onClick={handleNextStep}>
-          次の一手 (残り {solutionMoves.length} 手)
-        </button>
-      )}
+      <div className={styles.toolbar}>
+        <div className={`${styles.actionGroup} ${styles.primaryActions}`}>
+          <button className={styles.btn} onClick={handleUndo} type="button">
+            ↩ 1手戻る
+          </button>
+          {solutionMoves && solutionMoves.length > 0 && (
+            <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={handleNextStep} type="button">
+              ▶ 次の一手 ({solutionMoves.length})
+            </button>
+          )}
+        </div>
+        <div className={styles.actionGroup}>
+          <button className={`${styles.btn} ${styles.btnWarn}`} onClick={handleReset} type="button">
+            リセット
+          </button>
+          <button className={`${styles.btn} ${styles.btnWarn}`} onClick={handleNewGame} type="button">
+            新しいゲーム
+          </button>
+          <button className={styles.btn} onClick={handleViewSolution} type="button">
+            回答を見る
+          </button>
+        </div>
+      </div>
       <ColorNumberSliderComponent
         colorNumber={colorNumber}
         onColorNumberChange={handleColorNumberChange}
         onColorNumberCommit={handleColorNumberCommit}
       />
       {isGenerating && <div className={styles.generating}>生成中…</div>}
-      <ExportGameStateComponent gameState={gameState} />
-      <ImportGameStateComponent onImport={onImport} />
+      <div className={styles.actionGroup}>
+        <ExportGameStateComponent gameState={gameState} />
+        <ImportGameStateComponent onImport={onImport} />
+      </div>
+      <div className={styles.mobileBarSpacer} />
+      <div className={styles.mobileBar}>
+        <button className={styles.btn} onClick={handleUndo} type="button">
+          ↩ 1手戻る
+        </button>
+        {solutionMoves && solutionMoves.length > 0 && (
+          <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={handleNextStep} type="button">
+            ▶ 次の一手 ({solutionMoves.length})
+          </button>
+        )}
+      </div>
     </div>
   )
 }
@@ -169,7 +199,7 @@ const BottleContentComponent: React.FC<BottleContentComponentProps> = (
         <div
           key={index}
           className={`${styles.water} ${index === 0 ? styles.bottom : ''}`}
-          style={{ backgroundColor: water.colorHexCode }}
+          style={{ backgroundColor: water.colorHexCode, color: water.getTextColor() }}
         >
           {water.label}
         </div>
@@ -217,8 +247,8 @@ const ExportGameStateComponent: React.FC<{ gameState: GameState }> = (
     return props.gameState.export()
   }
   return (
-    <button className={styles.olive_button} onClick={() => window.prompt('この文字列をコピーしてどこかに保存してください', exportGameState())}>
-      このゲームを保存する (セーブ文字を生成)
+    <button className={`${styles.btn} ${styles.btnSubtle}`} onClick={() => window.prompt('この文字列をコピーしてどこかに保存してください', exportGameState())} type="button">
+      保存
     </button>
   )
   }
@@ -232,5 +262,5 @@ const ImportGameStateComponent: React.FC<{ onImport: (gameStateString: string) =
       props.onImport(gameStateString)
     }
   }
-  return <button className={styles.olive_button} onClick={importGameState}>文字列からゲームを開始する</button>
+  return <button className={`${styles.btn} ${styles.btnSubtle}`} onClick={importGameState} type="button">復元</button>
 }

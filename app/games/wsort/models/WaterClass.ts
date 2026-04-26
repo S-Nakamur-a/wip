@@ -13,6 +13,16 @@ export class WaterClass implements Water {
     return this.colorHexCode === other.colorHexCode
   }
 
+  // 背景色の YIQ 輝度から、ラベル文字を白抜きにすべきかを判定する
+  getTextColor(): string {
+    const hex = this.colorHexCode.replace('#', '')
+    const r = parseInt(hex.slice(0, 2), 16)
+    const g = parseInt(hex.slice(2, 4), 16)
+    const b = parseInt(hex.slice(4, 6), 16)
+    const luminance = r * 0.299 + g * 0.587 + b * 0.114
+    return luminance < 140 ? '#ffffff' : '#222222'
+  }
+
   static allColors(): string[] {
     return [
       '#E6194B', // red

@@ -78,6 +78,35 @@ button.selected {
     text-decoration-color: #fff;
 }
 
+.reset_container {
+    display: flex;
+    justify-content: center;
+    margin: 12px 0;
+}
+
+.reset_button {
+    min-height: 44px;
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #b91c1c;
+    background-color: #ffffff;
+    border: 1px solid #fca5a5;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.1s, transform 0.05s;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.reset_button:hover {
+    background-color: #fef2f2;
+}
+
+.reset_button:active {
+    transform: scale(0.97);
+}
+
 .congraturations {
     font-size: 2rem;
     color: rgb(255, 160, 45);
