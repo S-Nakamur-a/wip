@@ -26,21 +26,27 @@ export const useSudokuBoard = () => {
     const difficulty = useRef<Difficulty>("Easy");
     const [clear, setClear] = useState(false);
     const [hydrated, setHydrated] = useState(false);
+    const [isGenerating, setIsGenerating] = useState(false);
 
+    // 問題生成は同期的に重い (Hard で数百ms) ため、setTimeout(0) で UI に「生成中」表示の機会を与える。
     const newGame = (d: Difficulty) => {
-        difficulty.current = d;
-        const difficultyLevel: DifficultyLevel = {
-            "Easy": 30,
-            "Normal": 40,
-            "Hard": 100,
-        }
+        setIsGenerating(true);
+        setTimeout(() => {
+            difficulty.current = d;
+            const difficultyLevel: DifficultyLevel = {
+                "Easy": 30,
+                "Normal": 40,
+                "Hard": 100,
+            }
 
-        const [incompletedBoard, completedBoard] = createRandomSudokuProblem(difficultyLevel[d]);
-        initialBoard.current = copyBoard(incompletedBoard);
-        setBoard(incompletedBoard);
-        answerBoard.current = completedBoard;
-        setUserAnswerBoard(newUserAnswerBoard());
-        setClear(false);
+            const [incompletedBoard, completedBoard] = createRandomSudokuProblem(difficultyLevel[d]);
+            initialBoard.current = copyBoard(incompletedBoard);
+            setBoard(incompletedBoard);
+            answerBoard.current = completedBoard;
+            setUserAnswerBoard(newUserAnswerBoard());
+            setClear(false);
+            setIsGenerating(false);
+        }, 0);
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -104,5 +110,5 @@ export const useSudokuBoard = () => {
         setClear(false);
     }
 
-    return { board, setBoard, initialBoard, clear, checkClear, newGame, resetBoard, userAnswerBoard, setUserAnswerBoard, difficulty };
+    return { board, setBoard, initialBoard, clear, checkClear, newGame, resetBoard, userAnswerBoard, setUserAnswerBoard, difficulty, isGenerating };
 }

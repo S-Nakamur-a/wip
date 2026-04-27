@@ -19,6 +19,7 @@ export const GameBoard = () => {
   } = useGameState(colorNumber)
   const [selectedBottle, setSelectedBottle] = useState<number | null>(null)
   const [solutionMoves, setSolutionMoves] = useState<Move[] | null>(null)
+  const [isSolving, setIsSolving] = useState<boolean>(false)
 
   // 復元された gameState の色数にスライダー表示を追従させる
   useEffect(() => {
@@ -74,16 +75,21 @@ export const GameBoard = () => {
   }
 
   const handleViewSolution = () => {
-    const moves = solve(gameState.bottles)
-    if (moves === null) {
-      window.alert('今の状態からは解けません')
-      return
-    }
-    if (moves.length === 0) {
-      window.alert('既に解けています')
-      return
-    }
-    setSolutionMoves(moves)
+    if (isSolving) return
+    setIsSolving(true)
+    setTimeout(() => {
+      const moves = solve(gameState.bottles)
+      setIsSolving(false)
+      if (moves === null) {
+        window.alert('今の状態からは解けません')
+        return
+      }
+      if (moves.length === 0) {
+        window.alert('既に解けています')
+        return
+      }
+      setSolutionMoves(moves)
+    }, 0)
   }
 
   const handleNextStep = () => {
@@ -163,7 +169,12 @@ export const GameBoard = () => {
         onColorNumberChange={handleColorNumberChange}
         onColorNumberCommit={handleColorNumberCommit}
       />
-      {isGenerating && <div className={styles.generating}>生成中…</div>}
+      {(isGenerating || isSolving) && (
+        <div className={styles.loading}>
+          <span className={styles.spinner} aria-hidden />
+          {isGenerating ? '生成中…' : '回答計算中…'}
+        </div>
+      )}
       <div className={styles.actionGroup}>
         <ExportGameStateComponent gameState={gameState} />
         <ImportGameStateComponent onImport={onImport} />

@@ -138,6 +138,16 @@ td.selected {
     transform: scale(0.96);
 }
 
+.numpad_button_active {
+    background-color: #fde7a8;
+    border-color: #f59e0b;
+    color: #92400e;
+}
+
+.numpad_button_active:active:not(:disabled) {
+    background-color: #fcd57a;
+}
+
 .numpad_button:disabled {
     opacity: 0.4;
     cursor: not-allowed;
@@ -176,11 +186,4 @@ td.selected {
 .numpad_action:disabled {
     opacity: 0.4;
     cursor: not-allowed;
-}
-
-.numpad_action_active {
-    background-color: #f59e0b;
-    border-color: #d97706;
-    color: #fff;
-    font-weight: 700;
 }
