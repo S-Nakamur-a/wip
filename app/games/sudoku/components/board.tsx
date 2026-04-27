@@ -17,7 +17,6 @@ type CellPos = { y: number; x: number }
 
 export const SudokuBoard = ({ initialBoard, board, setBoard, checkClear, userAnswerBoard, setUserAnswerBoard }: Props) => {
     const [selected, setSelected] = useState<CellPos | null>(null)
-    const [noteMode, setNoteMode] = useState<boolean>(false)
 
     const isProblemCell = (y: number, x: number) => initialBoard[y][x] !== 0
 
@@ -30,17 +29,13 @@ export const SudokuBoard = ({ initialBoard, board, setBoard, checkClear, userAns
         const { y, x } = selected
         if (isProblemCell(y, x)) return
 
+        const cur = userAnswerBoard[y][x]
         const newUserAnswerBoard = copyBoard(userAnswerBoard)
-        if (noteMode) {
-            const cur = userAnswerBoard[y][x]
-            newUserAnswerBoard[y][x] = { ...cur, [n]: !cur[n] }
-        } else {
-            newUserAnswerBoard[y][x] = blankAnswers()
-            newUserAnswerBoard[y][x][n] = true
-        }
+        newUserAnswerBoard[y][x] = { ...cur, [n]: !cur[n] }
         setUserAnswerBoard(newUserAnswerBoard)
 
         const inputAnswers = getInputAnswers(newUserAnswerBoard[y][x])
+        // 候補が1つだけなら確定値として扱う (正誤判定の対象にする)
         const newValue: SuujiWithBlank = inputAnswers.length === 1 ? inputAnswers[0] : 0
         const newBoard = copyBoard(board)
         newBoard[y][x] = newValue
@@ -71,6 +66,19 @@ export const SudokuBoard = ({ initialBoard, board, setBoard, checkClear, userAns
         return y >= by && y < by + 3 && x >= bx && x < bx + 3
     }
 
+    // 選択セルに入力済みの数字: 編集セルなら候補集合 (確定値も含む)、問題セルなら表示中の値
+    const currentAnswers: Answers = (() => {
+        if (!selected) return blankAnswers()
+        const { y, x } = selected
+        if (isProblemCell(y, x)) {
+            const a = blankAnswers()
+            const v = board[y][x]
+            if (v !== 0) a[v] = true
+            return a
+        }
+        return userAnswerBoard[y][x]
+    })()
+
     return (
         <>
             <table className={styles.sudoku}>
@@ -98,10 +106,9 @@ export const SudokuBoard = ({ initialBoard, board, setBoard, checkClear, userAns
                 </tbody>
             </table>
             <NumberPad
-                noteMode={noteMode}
-                onToggleNote={() => setNoteMode((m) => !m)}
                 onNumber={handleNumberTap}
                 onErase={handleErase}
+                currentAnswers={currentAnswers}
                 disabled={!selected || isProblemCell(selected.y, selected.x)}
             />
         </>
@@ -137,24 +144,16 @@ const UserCell = ({ value, answers }: { value: SuujiWithBlank; answers: Answers 
 }
 
 type NumberPadProps = {
-    noteMode: boolean
-    onToggleNote: () => void
     onNumber: (n: Suuji) => void
     onErase: () => void
+    currentAnswers: Answers
     disabled: boolean
 }
 
-const NumberPad = ({ noteMode, onToggleNote, onNumber, onErase, disabled }: NumberPadProps) => {
+const NumberPad = ({ onNumber, onErase, currentAnswers, disabled }: NumberPadProps) => {
     return (
         <div className={styles.numpad}>
             <div className={styles.numpad_actions}>
-                <button
-                    className={`${styles.numpad_action} ${noteMode ? styles.numpad_action_active : ''}`}
-                    onClick={onToggleNote}
-                    type="button"
-                >
-                    ✏️ 下書き
-                </button>
                 <button
                     className={styles.numpad_action}
                     onClick={onErase}
@@ -168,7 +167,7 @@ const NumberPad = ({ noteMode, onToggleNote, onNumber, onErase, disabled }: Numb
                 {([1, 2, 3, 4, 5, 6, 7, 8, 9] as Suuji[]).map((n) => (
                     <button
                         key={n}
-                        className={styles.numpad_button}
+                        className={`${styles.numpad_button} ${currentAnswers[n] ? styles.numpad_button_active : ''}`}
                         onClick={() => onNumber(n)}
                         disabled={disabled}
                         type="button"

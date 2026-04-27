@@ -5,7 +5,7 @@ import { SudokuBoard } from './components/board';
 import { Difficulty, useSudokuBoard } from './hooks/useSudoku';
 
 export default function Page() {
-    const {board, setBoard, initialBoard, clear, checkClear, newGame, resetBoard, userAnswerBoard, setUserAnswerBoard, difficulty} = useSudokuBoard();
+    const {board, setBoard, initialBoard, clear, checkClear, newGame, resetBoard, userAnswerBoard, setUserAnswerBoard, difficulty, isGenerating} = useSudokuBoard();
 
     const handleReset = () => {
         if (!clear && !window.confirm('現在の進行状況を初期状態に戻しますか？')) return;
@@ -20,6 +20,12 @@ export default function Page() {
         <div className="container">
             <h1>数独</h1>
             {board && initialBoard.current && <SudokuBoard initialBoard={initialBoard.current} board={board} setBoard={setBoard} checkClear={checkClear} userAnswerBoard={userAnswerBoard} setUserAnswerBoard={setUserAnswerBoard} />}
+            {isGenerating && (
+                <div className={styles.loading}>
+                    <span className={styles.spinner} aria-hidden />
+                    生成中…
+                </div>
+            )}
             {clear && <div className={styles.congraturations}>Congratulations!</div>}
             <ResetComponent onReset={handleReset} />
             <NewGameComponent newGame={handleNewGame} difficulty={difficulty.current}/>

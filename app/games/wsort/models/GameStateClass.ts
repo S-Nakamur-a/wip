@@ -81,6 +81,7 @@ const stateKey = (bottles: Bottle[]): string =>
 export type Move = { from: number; to: number }
 
 // BFS で初期状態から解までの最短手順を求める。解なし or ノード上限到達時は null。
+// queue は index pointer 方式 (shift() の O(n) コストを回避)。
 export const solve = (init: Bottle[], nodeLimit = 500000): Move[] | null => {
   const initKey = stateKey(init)
   if (isSolved(init)) return []
@@ -88,10 +89,11 @@ export const solve = (init: Bottle[], nodeLimit = 500000): Move[] | null => {
   const seen = new Set<string>([initKey])
   type Item = { state: Bottle[]; key: string }
   const queue: Item[] = [{ state: init, key: initKey }]
+  let head = 0
   let nodes = 0
   let goalKey: string | null = null
-  while (queue.length > 0 && nodes < nodeLimit) {
-    const { state: cur, key: curKey } = queue.shift()!
+  outer: while (head < queue.length && nodes < nodeLimit) {
+    const { state: cur, key: curKey } = queue[head++]
     nodes++
     for (let i = 0; i < cur.length; i++) {
       if (cur[i].isEmpty()) continue
@@ -106,12 +108,10 @@ export const solve = (init: Bottle[], nodeLimit = 500000): Move[] | null => {
         parents.set(key, { parentKey: curKey, move: { from: i, to: j } })
         if (isSolved(next)) {
           goalKey = key
-          queue.length = 0
-          break
+          break outer
         }
         queue.push({ state: next, key })
       }
-      if (goalKey !== null) break
     }
   }
   if (goalKey === null) return null
@@ -126,5 +126,30 @@ export const solve = (init: Bottle[], nodeLimit = 500000): Move[] | null => {
   return moves.reverse()
 }
 
-export const isSolvable = (init: Bottle[], nodeLimit = 500000): boolean =>
-  solve(init, nodeLimit) !== null
+// 解の有無だけ判定する高速版。最短経路は不要なので DFS で深く潜る。
+// random() の生成検証で使うとランダム盤面は大抵 solvable なため早期に true を返せる。
+export const isSolvable = (init: Bottle[], nodeLimit = 500000): boolean => {
+  if (isSolved(init)) return true
+  const seen = new Set<string>([stateKey(init)])
+  const stack: Bottle[][] = [init]
+  let nodes = 0
+  while (stack.length > 0 && nodes < nodeLimit) {
+    const cur = stack.pop()!
+    nodes++
+    for (let i = 0; i < cur.length; i++) {
+      if (cur[i].isEmpty()) continue
+      for (let j = 0; j < cur.length; j++) {
+        if (i === j) continue
+        const [nf, nt] = pour(cur[i], cur[j])
+        if (nf === cur[i]) continue
+        const next = cur.map((b, k) => (k === i ? nf : k === j ? nt : b))
+        const key = stateKey(next)
+        if (seen.has(key)) continue
+        seen.add(key)
+        if (isSolved(next)) return true
+        stack.push(next)
+      }
+    }
+  }
+  return false
+}
