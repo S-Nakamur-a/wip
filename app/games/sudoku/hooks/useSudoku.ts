@@ -95,13 +95,13 @@ export const useSudokuBoard = () => {
         }
     }, [board, userAnswerBoard, clear, hydrated]);
 
-    const checkClear = () => {
-        if (board && isEqualBoard(board, answerBoard.current!)) {
-            setClear(true);
-        } else {
-            setClear(false);
-        }
-    }
+    // board がコミットされた後に判定する。setBoard 直後の同期呼び出しでは
+    // クロージャが古い board を参照してしまい、最後の1マスを埋めた瞬間に
+    // 反応しない不具合があったため、effect 化して board の最新値で判定する。
+    useEffect(() => {
+        if (!board || !answerBoard.current) return;
+        setClear(isEqualBoard(board, answerBoard.current));
+    }, [board]);
 
     const resetBoard = () => {
         if (!initialBoard.current) return;
@@ -110,5 +110,5 @@ export const useSudokuBoard = () => {
         setClear(false);
     }
 
-    return { board, setBoard, initialBoard, clear, checkClear, newGame, resetBoard, userAnswerBoard, setUserAnswerBoard, difficulty, isGenerating };
+    return { board, setBoard, initialBoard, clear, newGame, resetBoard, userAnswerBoard, setUserAnswerBoard, difficulty, isGenerating };
 }
