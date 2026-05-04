@@ -8,14 +8,13 @@ type Props = {
     initialBoard: IncompletedBoardType,
     board: IncompletedBoardType,
     setBoard: (board: IncompletedBoardType) => void,
-    checkClear: () => void,
     userAnswerBoard: UserAnswerBoardType,
     setUserAnswerBoard: (board: UserAnswerBoardType) => void,
 }
 
 type CellPos = { y: number; x: number }
 
-export const SudokuBoard = ({ initialBoard, board, setBoard, checkClear, userAnswerBoard, setUserAnswerBoard }: Props) => {
+export const SudokuBoard = ({ initialBoard, board, setBoard, userAnswerBoard, setUserAnswerBoard }: Props) => {
     const [selected, setSelected] = useState<CellPos | null>(null)
 
     const isProblemCell = (y: number, x: number) => initialBoard[y][x] !== 0
@@ -40,7 +39,6 @@ export const SudokuBoard = ({ initialBoard, board, setBoard, checkClear, userAns
         const newBoard = copyBoard(board)
         newBoard[y][x] = newValue
         setBoard(newBoard)
-        if (newValue !== 0) checkClear()
     }
 
     const handleErase = () => {
